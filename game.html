@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GAME</title>
+    <script src="//cdn.jsdelivr.net/npm/phaser@3.70.0/dist/phaser.js"></script>
+</head>
+
+<body>
+
+    <script type="text/javascript">
+
+        var config = {
+            type: Phaser.AUTO,
+            width: 1280,
+            height: 720,
+            physics: {
+                default: 'arcade',
+                arcade: {
+                    gravity: { y: 0 },
+                    debug: false
+                }
+            },
+            scene: {
+                preload: preload,
+                create: create,
+                update: update
+            }
+        };
+
+        const TURN_SPEED = 2.1;
+        const ACCELERATION = 1.1;
+        const DECELERATION = 0.75;
+        const MAX_SPEED = 160;
+
+        let currentSpeed = 0;
+        var car;
+        var walls;
+        var cursors;
+
+        var game = new Phaser.Game(config);
+
+
+        function preload() {
+            this.load.image('track', 'assets/track.png');
+            this.load.image('car', 'assets/car.png');
+            // this.load.image('wall', 'assets/wall.png');
+        }
+
+
+        function create() {
+            this.add.image(640, 360, 'track');
+
+            // walls = this.physics.add.staticGroup();
+            // walls.create(780, 400, 'wall');
+
+            car = this.physics.add.image(917, 58, 'car').setScale(0.5);
+            car.setCollideWorldBounds(true);
+
+            //car.setMaxVelocity(120);
+            //car.setDrag(250); // Increased drag to reduce sliding
+            //car.setAngularDrag(250); // Increased angular drag for better handling
+            //car.setFriction(0.2); // Higher for more grip, lower for more sliding
+            //car.setBounce(0.2); // 0 means no bounce, 1 is full bounce
+            //car.setMass(1); // Higher mass means more inertia
+
+            cursors = this.input.keyboard.createCursorKeys();
+
+            //this.physics.add.collider(car, walls, hitWall, null, this);
+
+            this.input.on('pointerdown', function (pointer) {
+                currentSpeed = 0;
+                car.angle = 0;
+                car.x = pointer.x;
+                car.y = pointer.y;
+                console.log(pointer.x + " " + pointer.y);
+            });
+
+        }
+
+
+        function update() {
+            if (cursors.left.isDown) {
+                if (cursors.up.isDown || !cursors.down.isDown) {
+                    car.angle -= TURN_SPEED;
+                } else if (cursors.down.isDown) {   // inversed controls for reverse driving
+                    car.angle += TURN_SPEED;
+                }
+            } else if (cursors.right.isDown) {
+                if (cursors.up.isDown || !cursors.down.isDown) {
+                    car.angle += TURN_SPEED;
+                } else if (cursors.down.isDown) {   // inversed controls for reverse driving
+                    car.angle -= TURN_SPEED;
+                }
+            }
+
+            if (cursors.up.isDown) {
+                if (currentSpeed < MAX_SPEED) {
+                    currentSpeed += ACCELERATION;
+                }
+            } else if (cursors.down.isDown) {
+                if (currentSpeed > -MAX_SPEED * 0.5) {
+                    currentSpeed -= ACCELERATION;
+                }
+            } else {
+                if (currentSpeed > 0) {
+                    currentSpeed -= DECELERATION;
+                } else if (currentSpeed < 0) {
+                    currentSpeed += DECELERATION;
+                }
+            }
+
+            car.body.velocity.x = Math.cos(car.rotation) * currentSpeed;
+            car.body.velocity.y = Math.sin(car.rotation) * currentSpeed;
+
+        }
+
+        
+        function hitWall() {
+
+        }
+
+    </script>
+
+</body>
+
+</html>
